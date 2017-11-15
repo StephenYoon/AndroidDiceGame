@@ -22,27 +22,22 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity {
 
     // Field to hold the roll result text
-    TextView rollResult;
+    private TextView _rollResult;
 
     // Field to hold the score
-    int score;
+    private int _score;
 
     // Field to hold the score text
-    TextView scoreText;
+    TextView _scoreText;
 
     // Field to hold random number generator
-    Random rand;
-
-    // Fields to hold the die values
-    int die1;
-    int die2;
-    int die3;
+    private Random _rand;
 
     // ArrayList to hold all three dice ImageViews
-    ArrayList<ImageView> diceImageViews;
+    private ArrayList<ImageView> _diceImageViews;
 
     // ArrayList to hold all three die values
-    ArrayList<Integer> dice;
+    private ArrayList<Integer> _dice;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,86 +46,117 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        // Roll dice button listener
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 rollDice(view);
+                rollResults();
             }
         });
 
         // Set initial score
-        score = 0;
+        _score = 0;
 
         // Create greeting
-        Toast.makeText(getApplicationContext(),"Welcome to DiceOut!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), "Good Luck!", Toast.LENGTH_SHORT).show();
 
         // Link instances to widgets in the activity view
-        rollResult = (TextView) findViewById(R.id.rollResult);
-        scoreText = (TextView) findViewById(R.id.scoreText);
+        _rollResult = (TextView) findViewById(R.id.rollResult);
+        _scoreText = (TextView) findViewById(R.id.scoreText);
 
         // Initialize the random number generator
-        rand = new Random();
+        _rand = new Random();
 
-        // Create ArrayList container for the dice values
-        dice = new ArrayList<Integer>();
+        // Initialize ArrayList container for the dice values
+        _dice = new ArrayList<Integer>(){{
+            add(1);
+            add(1);
+            add(1);
+        }};;
 
         // Access the dice ImageView widgets
         ImageView die1image = (ImageView) findViewById(R.id.die1Image);
         ImageView die2image = (ImageView) findViewById(R.id.die2Image);
         ImageView die3image = (ImageView) findViewById(R.id.die3Image);
 
+        // Add click listeners to dice. NOTE: refactor this repeated code.
+        die1image.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                rollDie(0, true);
+            }
+        });
+
+        die2image.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                rollDie(1, true);
+            }
+        });
+
+        die3image.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                rollDie(2, true);
+            }
+        });
+
         // Build ArrayList with dice ImageView instances
-        diceImageViews = new ArrayList<ImageView>();
-        diceImageViews.add(die1image);
-        diceImageViews.add(die2image);
-        diceImageViews.add(die3image);
+        _diceImageViews = new ArrayList<ImageView>();
+        _diceImageViews.add(die1image);
+        _diceImageViews.add(die2image);
+        _diceImageViews.add(die3image);
+    }
+
+    public int rollDie(int dieIndex, boolean calculateResults){
+        int dieValue = _rand.nextInt(6)+1;
+        _dice.set(dieIndex, dieValue);
+        String imageName = "die_" + dieValue + ".png";
+
+        try {
+            InputStream stream = getAssets().open(imageName);
+            Drawable d = Drawable.createFromStream(stream,null);
+            _diceImageViews.get(dieIndex).setImageDrawable(d);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if(calculateResults){
+            rollResults();
+        }
+
+        return dieValue;
     }
 
     public void rollDice(View v) {
-        // Roll dice
-        die1 = rand.nextInt(6)+1;
-        die2 = rand.nextInt(6)+1;
-        die3 = rand.nextInt(6)+1;
-
-        // Set dice values into an ArrayList
-        dice.clear();
-        dice.add(die1);
-        dice.add(die2);
-        dice.add(die3);
-
         for (int dieOfSet = 0; dieOfSet < 3; dieOfSet++) {
-            String imageName = "die_" + dice.get(dieOfSet) + ".png";
-
-            try {
-                InputStream stream = getAssets().open(imageName);
-                Drawable d = Drawable.createFromStream(stream,null);
-                diceImageViews.get(dieOfSet).setImageDrawable(d);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            _dice.set(dieOfSet, rollDie(dieOfSet, false));
         }
+    }
 
+    public void rollResults(){
         // Build message with the result
         String msg;
 
         // Run the scoring logic to determine points scored for the roll
-        if (die1 == die2 && die1 == die3) {
+        if (_dice.get(0)== _dice.get(1) && _dice.get(0) == _dice.get(2)) {
             // Triples
-            int scoreDelta = die1*100;
-            msg = "You rolled a triple " + die1 + "! You scored " + scoreDelta + " points!";
-            score += scoreDelta;
-        } else if (die1 == die2 || die1 == die3 || die2 == die3) {
+            int scoreDelta = _dice.get(0)*100;
+            msg = "You rolled a triple " + _dice.get(0) + "! You scored " + scoreDelta + " points!";
+            _score += scoreDelta;
+        } else if (_dice.get(0) == _dice.get(1) || _dice.get(0) == _dice.get(2) || _dice.get(1) == _dice.get(2)) {
             // Doubles
             msg = "You rolled doubles for 50 points!";
-            score += 50;
+            _score += 50;
         } else {
             msg = "You didn't score this roll. Try again!";
         }
 
         // Update the app to display the result message
-        rollResult.setText(msg);
-        scoreText.setText("Score: " + score);
+        _rollResult.setText(msg);
+        _scoreText.setText("Score: " + _score);
     }
 
     @Override

@@ -50,13 +50,24 @@
         android:src="@drawable/die_1" />
 
     <TextView
+        android:id="@+id/rollCountText"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:text="Rolls: 0"
+        android:layout_marginBottom="75dp"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textColor="@android:color/white" />
+
+    <TextView
         android:id="@+id/scoreText"
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:text="Score: 0"
-        android:layout_marginBottom="50dp"
+        android:layout_marginBottom="20dp"
         android:textAppearance="@style/TextAppearance.AppCompat.Display1"
         android:textColor="@android:color/white" />
 

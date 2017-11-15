@@ -27,8 +27,12 @@ public class MainActivity extends AppCompatActivity {
     // Field to hold the score
     private int _score;
 
+    // Field to hold the total number of rolls
+    private int _totalRollCount;
+    private TextView _totalRollsText;
+
     // Field to hold the score text
-    TextView _scoreText;
+    private TextView _scoreText;
 
     // Field to hold random number generator
     private Random _rand;
@@ -51,13 +55,20 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                _totalRollCount++;
                 rollDice(view);
                 rollResults();
             }
         });
 
-        // Set initial score
+        // Set initial values
         _score = 0;
+        _totalRollCount = 0;
+        _dice = new ArrayList<Integer>(){{
+            add(1);
+            add(1);
+            add(1);
+        }};;
 
         // Create greeting
         Toast.makeText(getApplicationContext(), "Good Luck!", Toast.LENGTH_SHORT).show();
@@ -65,16 +76,10 @@ public class MainActivity extends AppCompatActivity {
         // Link instances to widgets in the activity view
         _rollResult = (TextView) findViewById(R.id.rollResult);
         _scoreText = (TextView) findViewById(R.id.scoreText);
+        _totalRollsText = (TextView) findViewById(R.id.rollCountText);
 
         // Initialize the random number generator
         _rand = new Random();
-
-        // Initialize ArrayList container for the dice values
-        _dice = new ArrayList<Integer>(){{
-            add(1);
-            add(1);
-            add(1);
-        }};;
 
         // Access the dice ImageView widgets
         ImageView die1image = (ImageView) findViewById(R.id.die1Image);
@@ -82,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
         ImageView die3image = (ImageView) findViewById(R.id.die3Image);
 
         // Add click listeners to dice. NOTE: refactor this repeated code.
+        /*
         die1image.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -102,6 +108,7 @@ public class MainActivity extends AppCompatActivity {
                 rollDie(2, true);
             }
         });
+        */
 
         // Build ArrayList with dice ImageView instances
         _diceImageViews = new ArrayList<ImageView>();
@@ -124,6 +131,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if(calculateResults){
+            _totalRollCount++;
             rollResults();
         }
 
@@ -157,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
         // Update the app to display the result message
         _rollResult.setText(msg);
         _scoreText.setText("Score: " + _score);
+        _totalRollsText.setText("Rolls: " + _totalRollCount);
     }
 
     @Override

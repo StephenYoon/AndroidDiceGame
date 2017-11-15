@@ -5,11 +5,11 @@ android {
     buildToolsVersion "26.0.2"
     defaultConfig {
         applicationId "yoon.develop.luckydiceout"
-        minSdkVersion 24
+        minSdkVersion 15
         targetSdkVersion 26
-        versionName '2.1'
+        versionName '3.0'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        versionCode 2
+        versionCode 4
     }
     buildTypes {
         release {

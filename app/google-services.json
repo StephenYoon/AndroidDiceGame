@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "46750929714",
+    "firebase_url": "https://lucky-dice-out.firebaseio.com",
+    "project_id": "lucky-dice-out",
+    "storage_bucket": "lucky-dice-out.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:46750929714:android:0e692a38e245e8f0",
+        "android_client_info": {
+          "package_name": "yoon.develop.luckydiceout"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "46750929714-ujnphnllrhlu1n9hklkd1nt18bmsfoaj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "yoon.develop.luckydiceout",
+            "certificate_hash": "e93ddb2e8f550d68412d0d0981643166f70f27f3"
+          }
+        },
+        {
+          "client_id": "46750929714-4u2psde1qo1pvkdp4q6u8gshue5t2of1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAfoOkrW65zAMLXVfCpTV1V-zkeOSpNOJY"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "46750929714-4u2psde1qo1pvkdp4q6u8gshue5t2of1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

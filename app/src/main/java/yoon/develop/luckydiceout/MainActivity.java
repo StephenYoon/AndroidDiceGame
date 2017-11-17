@@ -14,6 +14,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.analytics.FirebaseAnalytics;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -21,17 +23,11 @@ import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
-    // Field to hold the roll result text
-    private TextView _rollResult;
-
-    // Field to hold the score
+    // Field to hold values
     private int _score;
-
-    // Field to hold the total number of rolls
     private int _totalRollCount;
+    private TextView _rollResult;
     private TextView _totalRollsText;
-
-    // Field to hold the score text
     private TextView _scoreText;
 
     // Field to hold random number generator
@@ -39,13 +35,20 @@ public class MainActivity extends AppCompatActivity {
 
     // ArrayList to hold all three dice ImageViews
     private ArrayList<ImageView> _diceImageViews;
-
-    // ArrayList to hold all three die values
     private ArrayList<Integer> _dice;
+
+    // Firebase
+    private final int MIN_SESSION_DURATION = 5000;
+    private FirebaseAnalytics mFBAnalytics;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mFBAnalytics = FirebaseAnalytics.getInstance(this); // retrieve an instance of the Analytics package
+        mFBAnalytics.setMinimumSessionDuration(MIN_SESSION_DURATION); // wait 5 seconds before counting this as a session
+
+        //
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -166,6 +169,12 @@ public class MainActivity extends AppCompatActivity {
         _rollResult.setText(msg);
         _scoreText.setText("Score: " + _score);
         _totalRollsText.setText("Rolls: " + _totalRollCount);
+
+        // Log the score as an Analytics event
+        Bundle params = new Bundle();
+        params.putString("testUser", "testUser");
+        params.putInt("score", _score);
+        mFBAnalytics.logEvent("score", params);
     }
 
     @Override

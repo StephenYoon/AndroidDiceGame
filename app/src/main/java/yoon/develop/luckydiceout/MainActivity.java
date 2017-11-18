@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Exit button listener
-        FloatingActionButton fabSignOut = (FloatingActionButton) findViewById(R.id.fabSignOut);
+        Button fabSignOut = (Button) findViewById(R.id.fabSignOut);
         fabSignOut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

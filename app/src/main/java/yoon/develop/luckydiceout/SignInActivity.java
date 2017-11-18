@@ -3,11 +3,13 @@ package yoon.develop.luckydiceout;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.content.Intent;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -41,6 +43,7 @@ public class SignInActivity extends AppCompatActivity
         findViewById(R.id.btnCreate).setOnClickListener(this);
         findViewById(R.id.btnSignIn).setOnClickListener(this);
         findViewById(R.id.btnSignOut).setOnClickListener(this);
+        findViewById(R.id.btnJustPlay).setOnClickListener(this);
 
         etEmail = (EditText)findViewById(R.id.etEmailAddr);
         etPass = (EditText)findViewById(R.id.etPassword);
@@ -56,20 +59,29 @@ public class SignInActivity extends AppCompatActivity
                 if (user != null) {
                     // User is signed in
                     Log.d(TAG, "Signed in: " + user.getUid());
-                    findViewById(R.id.btnCreate).setVisibility(View.GONE);
-                    findViewById(R.id.btnSignIn).setVisibility(View.GONE);
+                    findViewById(R.id.btnCreate).setVisibility(View.INVISIBLE);
+                    findViewById(R.id.btnSignIn).setVisibility(View.INVISIBLE);
+                    findViewById(R.id.btnJustPlay).setVisibility(View.INVISIBLE);
                     findViewById(R.id.btnSignOut).setVisibility(View.VISIBLE);
                 } else {
                     // User is signed out
                     Log.d(TAG, "Currently signed out");
                     findViewById(R.id.btnCreate).setVisibility(View.VISIBLE);
                     findViewById(R.id.btnSignIn).setVisibility(View.VISIBLE);
-                    findViewById(R.id.btnSignOut).setVisibility(View.GONE);
+                    findViewById(R.id.btnJustPlay).setVisibility(View.VISIBLE);
+                    findViewById(R.id.btnSignOut).setVisibility(View.INVISIBLE);
                 }
             }
         };
 
         updateStatus();
+
+        //
+        Intent intent = getIntent();
+        String action = intent.getStringExtra(MainActivity.EXTRA_MESSAGE);
+        if(!TextUtils.isEmpty(action) && action != null && action.equals("sign-out")){
+            signUserOut();
+        }
     }
 
     /**
@@ -95,6 +107,10 @@ public class SignInActivity extends AppCompatActivity
         switch (v.getId()) {
             case R.id.btnSignIn:
                 signUserIn();
+                break;
+
+            case R.id.btnJustPlay:
+                signUserIn(true);
                 break;
 
             case R.id.btnCreate:
@@ -130,11 +146,12 @@ public class SignInActivity extends AppCompatActivity
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
             tvStat.setText("Signed in: " + user.getEmail());
-            //setContentView(R.layout.activity_main);
+            //Intent intent = new Intent(this, MainActivity.class);
+            //intent.putExtra("UserEmail", user.getEmail());
+            //startActivity(intent);
         }
         else {
             tvStat.setText("Signed Out");
-            //setContentView(R.layout.activity_sign_in);
         }
     }
 
@@ -143,14 +160,24 @@ public class SignInActivity extends AppCompatActivity
         tvStat.setText(stat);
     }
 
-    private void signUserIn() {
-        if (!checkFormFields())
+    private void signUserIn(){
+        signUserIn(false);
+    }
+
+    private void signUserIn(boolean isGuest) {
+        if(isGuest) {
+            etEmail.setText("guest@gmail.com");
+            etPass.setText("1Password");
+        }
+
+        if (!checkFormFields()) {
             return;
+        }
 
         String email = etEmail.getText().toString();
         String password = etPass.getText().toString();
 
-        // TODO: sign the user in with email and password credentials
+        // Sign the user in with email and password credentials
         mAuth.signInWithEmailAndPassword(email,password)
             .addOnCompleteListener(this,
                 new OnCompleteListener<AuthResult>() {
@@ -165,6 +192,7 @@ public class SignInActivity extends AppCompatActivity
                                     .show();
                         }
 
+                        switchActivity();
                         updateStatus();
                     }
             })
@@ -185,9 +213,17 @@ public class SignInActivity extends AppCompatActivity
     }
 
     private void signUserOut() {
-        // TODO: sign the user out
         mAuth.signOut();
         updateStatus();
+    }
+
+    private void switchActivity(){
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra("UserEmail", user.getEmail());
+            startActivity(intent);
+        }
     }
 
     private void createUserAccount() {

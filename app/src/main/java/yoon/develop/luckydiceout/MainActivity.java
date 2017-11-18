@@ -1,5 +1,6 @@
 package yoon.develop.luckydiceout;
 
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -15,6 +16,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,6 +25,8 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
+
+    public static final String EXTRA_MESSAGE = "main-activity-action";
 
     // Field to hold values
     private int _score;
@@ -38,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<Integer> _dice;
 
     // Firebase
+    private FirebaseAuth mAuth;
     private final int MIN_SESSION_DURATION = 5000;
     private FirebaseAnalytics mFBAnalytics;
 
@@ -61,6 +67,15 @@ public class MainActivity extends AppCompatActivity {
                 _totalRollCount++;
                 rollDice(view);
                 rollResults();
+            }
+        });
+
+        // Exit button listener
+        FloatingActionButton fabSignOut = (FloatingActionButton) findViewById(R.id.fabSignOut);
+        fabSignOut.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                signUserOut();
             }
         });
 
@@ -118,6 +133,12 @@ public class MainActivity extends AppCompatActivity {
         _diceImageViews.add(die1image);
         _diceImageViews.add(die2image);
         _diceImageViews.add(die3image);
+    }
+
+    private void signUserOut() {
+        Intent intent = new Intent(this, SignInActivity.class);
+        intent.putExtra(EXTRA_MESSAGE, "sign-out");
+        startActivity(intent);
     }
 
     public int rollDie(int dieIndex, boolean calculateResults){

@@ -1,6 +1,8 @@
 package yoon.develop.luckydiceout;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -14,6 +16,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.text.TextUtils;
+import android.content.SharedPreferences;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
@@ -29,8 +33,14 @@ public class MainActivity extends AppCompatActivity {
     public static final String EXTRA_MESSAGE = "main-activity-action";
 
     // Field to hold values
-    private int _score;
-    private int _totalRollCount;
+    private String _userEmail;
+    private long _score;
+    private long _totalRollCount;
+    private long _doublesCount;
+    private long _triplesCount;
+
+    private TextView _userText;
+    private TextView _highScoreText;
     private TextView _rollResult;
     private TextView _totalRollsText;
     private TextView _scoreText;
@@ -75,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
         fabSignOut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                finish();
                 signUserOut();
             }
         });
@@ -82,6 +93,8 @@ public class MainActivity extends AppCompatActivity {
         // Set initial values
         _score = 0;
         _totalRollCount = 0;
+        _doublesCount = 0;
+        _triplesCount = 0;
         _dice = new ArrayList<Integer>(){{
             add(1);
             add(1);
@@ -92,6 +105,8 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(getApplicationContext(), "Good Luck!", Toast.LENGTH_SHORT).show();
 
         // Link instances to widgets in the activity view
+        _userText = (TextView) findViewById(R.id.userText);
+        _highScoreText = (TextView) findViewById(R.id.highScoreText);
         _rollResult = (TextView) findViewById(R.id.rollResult);
         _scoreText = (TextView) findViewById(R.id.scoreText);
         _totalRollsText = (TextView) findViewById(R.id.rollCountText);
@@ -133,6 +148,28 @@ public class MainActivity extends AppCompatActivity {
         _diceImageViews.add(die1image);
         _diceImageViews.add(die2image);
         _diceImageViews.add(die3image);
+
+        // Get user email
+        Intent intent = getIntent();
+        String action = intent.getStringExtra(SignInActivity.USER_EMAIL);
+        _userEmail = !TextUtils.isEmpty(action) && action != null ? action : null;
+
+        // Get saved scores
+        SharedPreferences sharedPref = this.getSharedPreferences(_userEmail, Context.MODE_PRIVATE);
+        long totalRolls = sharedPref.getLong("total_rolls", 0);
+        long highScore = sharedPref.getLong("high_score", 0);
+        long doubles = sharedPref.getLong("doubles", 0);
+        long triples = sharedPref.getLong("triples", 0);
+        _userText.setText("User: " + _userEmail);
+        _highScoreText.setText("High Score: " + highScore);
+    }
+
+    @Override
+    public void onBackPressed()
+    {
+        finish();
+        signUserOut();
+        super.onBackPressed();
     }
 
     private void signUserOut() {
@@ -178,10 +215,12 @@ public class MainActivity extends AppCompatActivity {
             int scoreDelta = _dice.get(0)*100;
             msg = "You rolled a triple " + _dice.get(0) + "! You scored " + scoreDelta + " points!";
             _score += scoreDelta;
+            _triplesCount++;
         } else if (_dice.get(0) == _dice.get(1) || _dice.get(0) == _dice.get(2) || _dice.get(1) == _dice.get(2)) {
             // Doubles
             msg = "You rolled doubles for 50 points!";
             _score += 50;
+            _doublesCount++;
         } else {
             msg = "You didn't score this roll. Try again!";
         }
@@ -192,10 +231,25 @@ public class MainActivity extends AppCompatActivity {
         _totalRollsText.setText("Rolls: " + _totalRollCount);
 
         // Log the score as an Analytics event
-        Bundle params = new Bundle();
+        /*Bundle params = new Bundle();
         params.putString("testUser", "testUser");
         params.putInt("score", _score);
-        mFBAnalytics.logEvent("score", params);
+        mFBAnalytics.logEvent("score", params);*/
+
+        // Get saved scores
+        SharedPreferences sharedPref = this.getSharedPreferences(_userEmail, Context.MODE_PRIVATE);
+        long totalRolls = sharedPref.getLong("total_rolls", 0);
+        long highScore = sharedPref.getLong("high_score", 0);
+        long doubles = sharedPref.getLong("doubles", 0);
+        long triples = sharedPref.getLong("triples", 0);
+
+        // Save scores
+        SharedPreferences.Editor editor = sharedPref.edit();
+        if(_totalRollCount > totalRolls) editor.putLong("total_rolls", _score);
+        if(_score > highScore) editor.putLong("high_score", _score);
+        if(_doublesCount > doubles) editor.putLong("doubles", _doublesCount);
+        if(_triplesCount > triples) editor.putLong("triples", _triplesCount);
+        editor.commit();
     }
 
     @Override

@@ -1,5 +1,7 @@
 package yoon.develop.luckydiceout;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -23,6 +25,10 @@ import com.google.firebase.auth.FirebaseUser;
 
 public class SignInActivity extends AppCompatActivity
     implements View.OnClickListener{
+    public static final String USER_EMAIL = "user-email";
+    public static final String USER_PASSWORD = "user-password";
+    public static final String APP_SIGN_IN = "app-sign-in";
+
     private final String TAG = "FB_SIGNIN";
 
     private FirebaseAuth mAuth;
@@ -63,6 +69,7 @@ public class SignInActivity extends AppCompatActivity
                     findViewById(R.id.btnSignIn).setVisibility(View.INVISIBLE);
                     findViewById(R.id.btnJustPlay).setVisibility(View.INVISIBLE);
                     findViewById(R.id.btnSignOut).setVisibility(View.VISIBLE);
+                    switchActivity();
                 } else {
                     // User is signed out
                     Log.d(TAG, "Currently signed out");
@@ -81,6 +88,15 @@ public class SignInActivity extends AppCompatActivity
         String action = intent.getStringExtra(MainActivity.EXTRA_MESSAGE);
         if(!TextUtils.isEmpty(action) && action != null && action.equals("sign-out")){
             signUserOut();
+        }
+
+        // Get last user
+        SharedPreferences sharedPref = this.getSharedPreferences(APP_SIGN_IN, Context.MODE_PRIVATE);
+        String lastUserEmail = sharedPref.getString(USER_EMAIL, "");
+        String lastUserPassword = sharedPref.getString(USER_PASSWORD, "");
+        if(!TextUtils.isEmpty(lastUserEmail)){
+            etEmail.setText(lastUserEmail);
+            etPass.setText(lastUserPassword);
         }
     }
 
@@ -146,9 +162,6 @@ public class SignInActivity extends AppCompatActivity
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
             tvStat.setText("Signed in: " + user.getEmail());
-            //Intent intent = new Intent(this, MainActivity.class);
-            //intent.putExtra("UserEmail", user.getEmail());
-            //startActivity(intent);
         }
         else {
             tvStat.setText("Signed Out");
@@ -176,6 +189,13 @@ public class SignInActivity extends AppCompatActivity
 
         String email = etEmail.getText().toString();
         String password = etPass.getText().toString();
+
+        // Save user's email
+        SharedPreferences sharedPref = this.getSharedPreferences(APP_SIGN_IN, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(USER_EMAIL, email);
+        editor.putString(USER_PASSWORD, password);
+        editor.commit();
 
         // Sign the user in with email and password credentials
         mAuth.signInWithEmailAndPassword(email,password)
@@ -221,7 +241,7 @@ public class SignInActivity extends AppCompatActivity
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
             Intent intent = new Intent(this, MainActivity.class);
-            intent.putExtra("UserEmail", user.getEmail());
+            intent.putExtra(USER_EMAIL, user.getEmail());
             startActivity(intent);
         }
     }

@@ -50,13 +50,35 @@
         android:src="@drawable/die_1" />
 
     <TextView
+        android:id="@+id/userText"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:text="Rolls: 0"
+        android:layout_marginBottom="180dp"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textColor="@android:color/white" />
+
+    <TextView
+        android:id="@+id/highScoreText"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:text="Rolls: 0"
+        android:layout_marginBottom="140dp"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textColor="@android:color/white" />
+
+    <TextView
         android:id="@+id/rollCountText"
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:text="Rolls: 0"
-        android:layout_marginBottom="75dp"
+        android:layout_marginBottom="100dp"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
         android:textColor="@android:color/white" />
 
@@ -67,7 +89,7 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:text="Score: 0"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="50dp"
         android:textAppearance="@style/TextAppearance.AppCompat.Display1"
         android:textColor="@android:color/white" />
 

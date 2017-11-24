@@ -67,7 +67,7 @@
         android:layout_height="wrap_content"
         android:text="Sign Out"
         android:id="@+id/btnSignOut"
-        android:layout_below="@+id/btnCreate"
+        android:layout_alignBottom="@+id/btnSignIn"
         android:layout_alignParentStart="true"
         android:layout_marginTop="10dp" />
 

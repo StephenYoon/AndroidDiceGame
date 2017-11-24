@@ -6,18 +6,23 @@ import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.text.TextUtils;
 import android.content.SharedPreferences;
+
+import android.hardware.SensorManager;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
@@ -28,7 +33,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
     public static final String EXTRA_MESSAGE = "main-activity-action";
 
@@ -41,8 +46,10 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView _userText;
     private TextView _highScoreText;
-    private TextView _rollResult;
+    private TextView _doublesCountText;
+    private TextView _triplesCountText;
     private TextView _totalRollsText;
+    private TextView _rollResult;
     private TextView _scoreText;
 
     // Field to hold random number generator
@@ -55,17 +62,23 @@ public class MainActivity extends AppCompatActivity {
     // Firebase
     private FirebaseAuth mAuth;
     private final int MIN_SESSION_DURATION = 5000;
-    private FirebaseAnalytics mFBAnalytics;
+
+    // Sensors
+    private SensorManager sensorMan;
+    private Sensor accelerometer;
+
+    private float[] mGravity;
+    private float mAccel;
+    private float mAccelCurrent;
+    private float mAccelLast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mFBAnalytics = FirebaseAnalytics.getInstance(this); // retrieve an instance of the Analytics package
-        mFBAnalytics.setMinimumSessionDuration(MIN_SESSION_DURATION); // wait 5 seconds before counting this as a session
-
         //
         setContentView(R.layout.activity_main);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -74,7 +87,6 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                _totalRollCount++;
                 rollDice(view);
                 rollResults();
             }
@@ -108,8 +120,11 @@ public class MainActivity extends AppCompatActivity {
         _userText = (TextView) findViewById(R.id.userText);
         _highScoreText = (TextView) findViewById(R.id.highScoreText);
         _rollResult = (TextView) findViewById(R.id.rollResult);
-        _scoreText = (TextView) findViewById(R.id.scoreText);
+
+        _doublesCountText = (TextView) findViewById(R.id.doublesCountText);
+        _triplesCountText = (TextView) findViewById(R.id.triplesCountText);
         _totalRollsText = (TextView) findViewById(R.id.rollCountText);
+        _scoreText = (TextView) findViewById(R.id.scoreText);
 
         // Initialize the random number generator
         _rand = new Random();
@@ -162,6 +177,17 @@ public class MainActivity extends AppCompatActivity {
         long triples = sharedPref.getLong("triples", 0);
         _userText.setText("User: " + _userEmail);
         _highScoreText.setText("High Score: " + highScore);
+        _doublesCountText.setText("Doubles: " + _doublesCount);
+        _triplesCountText.setText("Triples: " + _triplesCount);
+        _totalRollsText.setText("Rolls: " + _totalRollCount);
+        _scoreText.setText("Score: " + _score);
+
+        // Sensors
+        sensorMan = (SensorManager)getSystemService(SENSOR_SERVICE);
+        accelerometer = sensorMan.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mAccel = 0.00f;
+        mAccelCurrent = SensorManager.GRAVITY_EARTH;
+        mAccelLast = SensorManager.GRAVITY_EARTH;
     }
 
     @Override
@@ -192,7 +218,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if(calculateResults){
-            _totalRollCount++;
             rollResults();
         }
 
@@ -200,6 +225,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void rollDice(View v) {
+        _totalRollCount++;
         for (int dieOfSet = 0; dieOfSet < 3; dieOfSet++) {
             _dice.set(dieOfSet, rollDie(dieOfSet, false));
         }
@@ -213,7 +239,7 @@ public class MainActivity extends AppCompatActivity {
         if (_dice.get(0)== _dice.get(1) && _dice.get(0) == _dice.get(2)) {
             // Triples
             int scoreDelta = _dice.get(0)*100;
-            msg = "You rolled a triple " + _dice.get(0) + "! You scored " + scoreDelta + " points!";
+            msg = "You rolled a triple " + _dice.get(0) + " for " + scoreDelta + " points!";
             _score += scoreDelta;
             _triplesCount++;
         } else if (_dice.get(0) == _dice.get(1) || _dice.get(0) == _dice.get(2) || _dice.get(1) == _dice.get(2)) {
@@ -228,13 +254,9 @@ public class MainActivity extends AppCompatActivity {
         // Update the app to display the result message
         _rollResult.setText(msg);
         _scoreText.setText("Score: " + _score);
+        _doublesCountText.setText("Doubles: " + _doublesCount);
+        _triplesCountText.setText("Triples: " + _triplesCount);
         _totalRollsText.setText("Rolls: " + _totalRollCount);
-
-        // Log the score as an Analytics event
-        /*Bundle params = new Bundle();
-        params.putString("testUser", "testUser");
-        params.putInt("score", _score);
-        mFBAnalytics.logEvent("score", params);*/
 
         // Get saved scores
         SharedPreferences sharedPref = this.getSharedPreferences(_userEmail, Context.MODE_PRIVATE);
@@ -272,5 +294,43 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    /*** Sensor logic ***/
+    @Override
+    public void onResume() {
+        super.onResume();
+        sensorMan.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        sensorMan.unregisterListener(this);
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
+            mGravity = event.values.clone();
+            // Shake detection
+            float x = mGravity[0];
+            float y = mGravity[1];
+            float z = mGravity[2];
+            mAccelLast = mAccelCurrent;
+            mAccelCurrent = (float)Math.sqrt(x*x + y*y + z*z);
+            float delta = mAccelCurrent - mAccelLast;
+            mAccel = mAccel * 0.7f + delta;
+            // Make this higher or lower according to how much motion you want to detect
+            if(mAccel > 3){
+                rollDice(null);
+                rollResults();
+            }
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        // required method
     }
 }

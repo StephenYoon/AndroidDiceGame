@@ -5,9 +5,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,13 +26,24 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
@@ -40,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     // Field to hold values
     private String _userEmail;
     private long _score;
+    private long _highScore;
     private long _totalRollCount;
     private long _doublesCount;
     private long _triplesCount;
@@ -60,8 +74,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private ArrayList<Integer> _dice;
 
     // Firebase
-    private FirebaseAuth mAuth;
     private final int MIN_SESSION_DURATION = 5000;
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+    private CollectionReference _users;
+    private UserData _userData;
+    private boolean _initialUpdate;
 
     // Sensors
     private SensorManager sensorMan;
@@ -75,6 +93,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Get user email
+        Intent intent = getIntent();
+        String action = intent.getStringExtra(SignInActivity.USER_EMAIL);
+        _userEmail = !TextUtils.isEmpty(action) && action != null ? action : null;
+
+        // Firestore cloud db
+        db = FirebaseFirestore.getInstance();
+        _users = db.collection("users");
+        _initialUpdate = true;
+        getUserData();
 
         //
         setContentView(R.layout.activity_main);
@@ -92,18 +120,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         });
 
-        // Exit button listener
-        Button fabSignOut = (Button) findViewById(R.id.fabSignOut);
-        fabSignOut.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                finish();
-                signUserOut();
-            }
-        });
-
         // Set initial values
         _score = 0;
+        _highScore = 0;
         _totalRollCount = 0;
         _doublesCount = 0;
         _triplesCount = 0;
@@ -164,22 +183,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         _diceImageViews.add(die2image);
         _diceImageViews.add(die3image);
 
-        // Get user email
-        Intent intent = getIntent();
-        String action = intent.getStringExtra(SignInActivity.USER_EMAIL);
-        _userEmail = !TextUtils.isEmpty(action) && action != null ? action : null;
-
         // Get saved scores
         SharedPreferences sharedPref = this.getSharedPreferences(_userEmail, Context.MODE_PRIVATE);
-        long totalRolls = sharedPref.getLong("total_rolls", 0);
-        long highScore = sharedPref.getLong("high_score", 0);
-        long doubles = sharedPref.getLong("doubles", 0);
-        long triples = sharedPref.getLong("triples", 0);
+        _totalRollCount = sharedPref.getLong("total_rolls", 0);
+        _highScore = sharedPref.getLong("high_score", 0);
+
         _userText.setText("User: " + _userEmail);
-        _highScoreText.setText("High Score: " + highScore);
+        _highScoreText.setText("High Score: " + _highScore);
         _doublesCountText.setText("Doubles: " + _doublesCount);
         _triplesCountText.setText("Triples: " + _triplesCount);
-        _totalRollsText.setText("Rolls: " + _totalRollCount);
+        _totalRollsText.setText("Total Rolls: " + _totalRollCount);
         _scoreText.setText("Score: " + _score);
 
         // Sensors
@@ -198,6 +211,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onBackPressed();
     }
 
+    // available if you want to include an actual Exit button in activity_main.xml
     private void signUserOut() {
         Intent intent = new Intent(this, SignInActivity.class);
         intent.putExtra(EXTRA_MESSAGE, "sign-out");
@@ -251,27 +265,67 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             msg = "You didn't score this roll. Try again!";
         }
 
+        // Save scores
+        SharedPreferences sharedPref = this.getSharedPreferences(_userEmail, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        if(_score > _highScore) {
+            _highScore = _score;
+        };
+        editor.putLong("total_rolls", _totalRollCount);
+        editor.putLong("high_score", _highScore);
+        editor.commit();
+
         // Update the app to display the result message
         _rollResult.setText(msg);
-        _scoreText.setText("Score: " + _score);
-        _doublesCountText.setText("Doubles: " + _doublesCount);
+        _totalRollsText.setText("Total Rolls: " + _totalRollCount);
+        _highScoreText.setText("High Score: " + _highScore);
         _triplesCountText.setText("Triples: " + _triplesCount);
-        _totalRollsText.setText("Rolls: " + _totalRollCount);
+        _doublesCountText.setText("Doubles: " + _doublesCount);
+        _scoreText.setText("Score: " + _score);
 
-        // Get saved scores
-        SharedPreferences sharedPref = this.getSharedPreferences(_userEmail, Context.MODE_PRIVATE);
-        long totalRolls = sharedPref.getLong("total_rolls", 0);
-        long highScore = sharedPref.getLong("high_score", 0);
-        long doubles = sharedPref.getLong("doubles", 0);
-        long triples = sharedPref.getLong("triples", 0);
+        // Firestore the high score
+        if(_highScore > _userData.HighScore || _initialUpdate){
+            upsertUserData(_userEmail, _highScore, _totalRollCount);
+            _initialUpdate = false;
+        }
+    }
 
-        // Save scores
-        SharedPreferences.Editor editor = sharedPref.edit();
-        if(_totalRollCount > totalRolls) editor.putLong("total_rolls", _score);
-        if(_score > highScore) editor.putLong("high_score", _score);
-        if(_doublesCount > doubles) editor.putLong("doubles", _doublesCount);
-        if(_triplesCount > triples) editor.putLong("triples", _triplesCount);
-        editor.commit();
+    private void getUserData(){
+        try{
+            DocumentReference docRef = _users.document(_userEmail);
+            docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        if(!document.exists()){
+                            upsertUserData(_userEmail, 0, 0);
+                            _userData = new UserData(0, 0);
+                        }
+                        else if (document != null && document.exists()) {
+                            _userData = document.toObject(UserData.class); //task.getResult().getData();
+                            //Log.d("MainActivity", "DocumentSnapshot data: " + _userData);
+                        } else {
+                            //Log.d("MainActivity", "No such document");
+                        }
+                    } else {
+                        //Log.d("MainActivity", "get failed with ", task.getException());
+                    }
+                }
+            });
+        }
+        catch(Exception ex){
+            // ...
+        }
+    }
+
+    private void upsertUserData(String email, long highScore, long totalRolls){
+        try{
+            _users.document(email).set(new UserData(highScore, totalRolls));
+        }
+        catch(Exception ex){
+            // ...
+        }
     }
 
     @Override

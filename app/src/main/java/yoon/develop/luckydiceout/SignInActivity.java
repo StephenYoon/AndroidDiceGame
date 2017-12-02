@@ -204,12 +204,10 @@ public class SignInActivity extends AppCompatActivity
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            Toast.makeText(SignInActivity.this, "Signed in", Toast.LENGTH_SHORT)
-                                    .show();
+                            Toast.makeText(SignInActivity.this, "Signed in", Toast.LENGTH_SHORT).show();
                         }
                         else {
-                            Toast.makeText(SignInActivity.this, "Sign in failed", Toast.LENGTH_SHORT)
-                                    .show();
+                            Toast.makeText(SignInActivity.this, "Sign in failed", Toast.LENGTH_SHORT).show();
                         }
 
                         switchActivity();

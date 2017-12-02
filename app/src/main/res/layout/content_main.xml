@@ -55,41 +55,8 @@
         android:layout_width="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:text="Rolls: 0"
+        android:text="User: 0"
         android:layout_marginBottom="270dp"
-        android:textAppearance="@style/TextAppearance.AppCompat.Large"
-        android:textColor="@android:color/white" />
-
-    <TextView
-        android:id="@+id/highScoreText"
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:text="Rolls: 0"
-        android:layout_marginBottom="230dp"
-        android:textAppearance="@style/TextAppearance.AppCompat.Large"
-        android:textColor="@android:color/white" />
-
-    <TextView
-        android:id="@+id/doublesCountText"
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:text="Rolls: 0"
-        android:layout_marginBottom="190dp"
-        android:textAppearance="@style/TextAppearance.AppCompat.Large"
-        android:textColor="@android:color/white" />
-
-    <TextView
-        android:id="@+id/triplesCountText"
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:text="Rolls: 0"
-        android:layout_marginBottom="150dp"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
         android:textColor="@android:color/white" />
 
@@ -99,8 +66,41 @@
         android:layout_width="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:text="Rolls: 0"
+        android:text="Total Rolls: 0"
+        android:layout_marginBottom="230dp"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textColor="@android:color/white" />
+
+    <TextView
+        android:id="@+id/highScoreText"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:text="High Score: 0"
+        android:layout_marginBottom="190dp"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textColor="@android:color/white" />
+
+    <TextView
+        android:id="@+id/doublesCountText"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:text="Doubles: 0"
         android:layout_marginBottom="110dp"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textColor="@android:color/white" />
+
+    <TextView
+        android:id="@+id/triplesCountText"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:text="Triples: 0"
+        android:layout_marginBottom="150dp"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
         android:textColor="@android:color/white" />
 

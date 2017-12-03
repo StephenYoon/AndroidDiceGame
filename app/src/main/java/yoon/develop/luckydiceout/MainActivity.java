@@ -45,6 +45,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.Calendar;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
@@ -213,9 +215,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     // available if you want to include an actual Exit button in activity_main.xml
     private void signUserOut() {
+        upsertUserData(_userEmail, _highScore, _totalRollCount);
         Intent intent = new Intent(this, SignInActivity.class);
         intent.putExtra(EXTRA_MESSAGE, "sign-out");
         startActivity(intent);
+    }
+
+    public void rollDice(View v) {
+        _totalRollCount++;
+        for (int dieOfSet = 0; dieOfSet < 3; dieOfSet++) {
+            _dice.set(dieOfSet, rollDie(dieOfSet, false));
+        }
     }
 
     public int rollDie(int dieIndex, boolean calculateResults){
@@ -238,15 +248,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         return dieValue;
     }
 
-    public void rollDice(View v) {
-        _totalRollCount++;
-        for (int dieOfSet = 0; dieOfSet < 3; dieOfSet++) {
-            _dice.set(dieOfSet, rollDie(dieOfSet, false));
-        }
-    }
-
     public void rollResults(){
-        // Build message with the result
         String msg;
 
         // Run the scoring logic to determine points scored for the roll
@@ -266,25 +268,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
 
         // Save scores
-        SharedPreferences sharedPref = this.getSharedPreferences(_userEmail, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
         if(_score > _highScore) {
             _highScore = _score;
-        };
-        editor.putLong("total_rolls", _totalRollCount);
-        editor.putLong("high_score", _highScore);
-        editor.commit();
+        }
+        updateLocalData(_userEmail, _highScore, _totalRollCount);
 
         // Update the app to display the result message
         _rollResult.setText(msg);
-        _totalRollsText.setText("Total Rolls: " + _totalRollCount);
-        _highScoreText.setText("High Score: " + _highScore);
-        _triplesCountText.setText("Triples: " + _triplesCount);
-        _doublesCountText.setText("Doubles: " + _doublesCount);
-        _scoreText.setText("Score: " + _score);
+        updateTexts();
 
-        // Firestore the high score
-        if(_highScore > _userData.HighScore || _initialUpdate){
+        // Firestore the high score (we want to minimize calls to the cloud and data usage)
+        if(_initialUpdate){
             upsertUserData(_userEmail, _highScore, _totalRollCount);
             _initialUpdate = false;
         }
@@ -300,10 +294,27 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         DocumentSnapshot document = task.getResult();
                         if(!document.exists()){
                             upsertUserData(_userEmail, 0, 0);
-                            _userData = new UserData(0, 0);
+                            _userData = new UserData();
                         }
                         else if (document != null && document.exists()) {
                             _userData = document.toObject(UserData.class); //task.getResult().getData();
+                            if (_userData.HighScore > _highScore){
+                                _highScore = _userData.HighScore;
+                                updateLocalData(_userEmail, _highScore, _totalRollCount);
+                                updateTexts();
+                            }
+                            else if (_highScore > _userData.HighScore){
+                                upsertUserData(_userEmail, _highScore, _totalRollCount);
+                            }
+
+                            if (_userData.TotalRolls > _totalRollCount){
+                                _totalRollCount = _userData.TotalRolls;
+                                updateLocalData(_userEmail, _highScore, _totalRollCount);
+                                updateTexts();
+                            }
+                            else if (_totalRollCount > _userData.TotalRolls){
+                                upsertUserData(_userEmail, _highScore, _totalRollCount);
+                            }
                             //Log.d("MainActivity", "DocumentSnapshot data: " + _userData);
                         } else {
                             //Log.d("MainActivity", "No such document");
@@ -319,9 +330,25 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
+    private void updateTexts(){
+        _totalRollsText.setText("Total Rolls: " + _totalRollCount);
+        _highScoreText.setText("High Score: " + _highScore);
+        _triplesCountText.setText("Triples: " + _triplesCount);
+        _doublesCountText.setText("Doubles: " + _doublesCount);
+        _scoreText.setText("Score: " + _score);
+    }
+
+    private void updateLocalData(String email, long highScore, long totalRollCount){
+        SharedPreferences sharedPref = this.getSharedPreferences(email, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putLong("total_rolls", totalRollCount);
+        editor.putLong("high_score", highScore);
+        editor.commit();
+    }
+
     private void upsertUserData(String email, long highScore, long totalRolls){
         try{
-            _users.document(email).set(new UserData(highScore, totalRolls));
+            _users.document(email).set(new UserData(highScore, totalRolls, Calendar.getInstance().getTime()));
         }
         catch(Exception ex){
             // ...

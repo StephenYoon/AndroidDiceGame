@@ -139,6 +139,12 @@ public class SignInActivity extends AppCompatActivity
         }
     }
 
+    @Override
+    public void onBackPressed()
+    {
+        // ...
+    }
+
     private boolean checkFormFields() {
         String email, password;
 

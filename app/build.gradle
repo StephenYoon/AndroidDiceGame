@@ -6,10 +6,10 @@ android {
     defaultConfig {
         applicationId "yoon.develop.luckydiceout"
         minSdkVersion 17
-        targetSdkVersion 26
-        versionName '3.10'
+        targetSdkVersion 24
+        versionName '3.11'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        versionCode 14
+        versionCode 15
     }
     buildTypes {
         release {

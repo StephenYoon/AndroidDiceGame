@@ -78,7 +78,7 @@
         android:id="@+id/btnJustPlay"
         android:layout_below="@+id/btnSignOut"
         android:layout_alignParentStart="true"
-        android:layout_marginTop="10dp" />
+        android:layout_marginTop="15dp" />
 
     <TextView
         android:layout_width="match_parent"
@@ -87,6 +87,6 @@
         android:id="@+id/tvSignInStatus"
         android:layout_below="@+id/btnSignOut"
         android:layout_alignParentStart="true"
-        android:layout_marginTop="60dp" />
+        android:layout_marginTop="70dp" />
 
 </RelativeLayout>

@@ -51,6 +51,7 @@ import java.util.Date;
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
     public static final String EXTRA_MESSAGE = "main-activity-action";
+    public static final String EXTRA_MESSAGE_USER_EMAIL = "user-email";
 
     // Field to hold values
     private String _userEmail;
@@ -213,6 +214,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         upsertUserData(_userEmail, _highScore, _totalRollCount);
         Intent intent = new Intent(this, SignInActivity.class);
         intent.putExtra(EXTRA_MESSAGE, "sign-out");
+        intent.putExtra(EXTRA_MESSAGE_USER_EMAIL, _userEmail);
         startActivity(intent);
     }
 

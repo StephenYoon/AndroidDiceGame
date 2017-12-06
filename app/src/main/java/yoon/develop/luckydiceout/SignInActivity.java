@@ -13,6 +13,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.content.Intent;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.SignInButton;
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
@@ -29,10 +35,13 @@ public class SignInActivity extends AppCompatActivity
     public static final String USER_PASSWORD = "user-password";
     public static final String APP_SIGN_IN = "app-sign-in";
 
+    private static final int RC_SIGN_IN = 9000;
     private final String TAG = "FB_SIGNIN";
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
+    private GoogleSignInClient mGoogleSignInClient;
+    private GoogleSignInAccount mGoogleAccount;
 
     private EditText etPass;
     private EditText etEmail;
@@ -49,6 +58,11 @@ public class SignInActivity extends AppCompatActivity
         findViewById(R.id.btnCreate).setOnClickListener(this);
         findViewById(R.id.btnSignIn).setOnClickListener(this);
         findViewById(R.id.btnSignOut).setOnClickListener(this);
+        findViewById(R.id.sign_in_button).setOnClickListener(this);
+
+        // Set the dimensions of the sign-in button.
+        SignInButton signInButton = findViewById(R.id.sign_in_button);
+        signInButton.setSize(SignInButton.SIZE_WIDE);
 
         etEmail = (EditText)findViewById(R.id.etEmailAddr);
         etPass = (EditText)findViewById(R.id.etPassword);
@@ -67,7 +81,7 @@ public class SignInActivity extends AppCompatActivity
                     findViewById(R.id.btnCreate).setVisibility(View.INVISIBLE);
                     findViewById(R.id.btnSignIn).setVisibility(View.INVISIBLE);
                     findViewById(R.id.btnSignOut).setVisibility(View.VISIBLE);
-                    switchActivity();
+                    switchActivity(null);
                 } else {
                     // User is signed out
                     Log.d(TAG, "Currently signed out");
@@ -84,7 +98,8 @@ public class SignInActivity extends AppCompatActivity
         Intent intent = getIntent();
         String action = intent.getStringExtra(MainActivity.EXTRA_MESSAGE);
         if(!TextUtils.isEmpty(action) && action != null && action.equals("sign-out")){
-            signUserOut();
+            String email = intent.getStringExtra(MainActivity.EXTRA_MESSAGE_USER_EMAIL);
+            signUserOut(email);
         }
 
         // Get last user
@@ -95,6 +110,15 @@ public class SignInActivity extends AppCompatActivity
             etEmail.setText(lastUserEmail);
             etPass.setText(lastUserPassword);
         }
+
+        // Configure sign-in to request the user's ID, email address, and basic
+        // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build();
+
+        // Build a GoogleSignInClient with the options specified by gso.
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
     }
 
     /**
@@ -122,12 +146,16 @@ public class SignInActivity extends AppCompatActivity
                 signUserIn();
                 break;
 
+            case R.id.sign_in_button:
+                googleSignIn();
+                break;
+
             case R.id.btnCreate:
                 createUserAccount();
                 break;
 
             case R.id.btnSignOut:
-                signUserOut();
+                signUserOut(null);
                 break;
         }
     }
@@ -139,6 +167,34 @@ public class SignInActivity extends AppCompatActivity
         intent.addCategory(Intent.CATEGORY_HOME);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // Result returned from launching the Intent from GoogleSignInClient.getSignInIntent(...);
+        if (requestCode == RC_SIGN_IN) {
+            // The Task returned from this call is always completed, no need to attach
+            // a listener.
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+            handleSignInResult(task);
+        }
+    }
+
+    private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
+        try {
+            mGoogleAccount = completedTask.getResult(ApiException.class);
+
+            // Signed in successfully, show authenticated UI.
+            updateStatus("Logged in: " + mGoogleAccount.getEmail());
+            switchActivity(mGoogleAccount.getEmail());
+        } catch (ApiException e) {
+            // The ApiException status code indicates the detailed failure reason.
+            // Please refer to the GoogleSignInStatusCodes class reference for more information.
+            // Log.w(TAG, "signInResult:failed code=" + e.getStatusCode());
+            updateStatus("signInResult:failed code=" + e.getStatusCode());
+        }
     }
 
     private boolean checkFormFields() {
@@ -175,16 +231,12 @@ public class SignInActivity extends AppCompatActivity
         tvStat.setText(stat);
     }
 
-    private void signUserIn(){
-        signUserIn(false);
+    private void googleSignIn() {
+        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
-    private void signUserIn(boolean isGuest) {
-        if(isGuest) {
-            etEmail.setText("guest@gmail.com");
-            etPass.setText("1Password");
-        }
-
+    private void signUserIn() {
         if (!checkFormFields()) {
             return;
         }
@@ -212,7 +264,7 @@ public class SignInActivity extends AppCompatActivity
                             Toast.makeText(SignInActivity.this, "Sign in failed", Toast.LENGTH_SHORT).show();
                         }
 
-                        switchActivity();
+                        switchActivity(null);
                         updateStatus();
                     }
             })
@@ -232,17 +284,32 @@ public class SignInActivity extends AppCompatActivity
             });
     }
 
-    private void signUserOut() {
-        mAuth.signOut();
-        updateStatus();
+    private void signUserOut(String email) {
+        if(mAuth.getCurrentUser() != null){
+            mAuth.signOut();
+            updateStatus();
+        }
+        else if (!TextUtils.isEmpty(email)) {
+            updateStatus("Signed out: " + email);
+        }
+        else {
+            updateStatus("Signed out");
+        }
     }
 
-    private void switchActivity(){
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user != null) {
+    private void switchActivity(String userEmail){
+        if (!TextUtils.isEmpty(userEmail)) {
             Intent intent = new Intent(this, MainActivity.class);
-            intent.putExtra(USER_EMAIL, user.getEmail());
+            intent.putExtra(USER_EMAIL, userEmail);
             startActivity(intent);
+        }
+        else {
+            FirebaseUser user = mAuth.getCurrentUser();
+            if (user != null) {
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.putExtra(USER_EMAIL, user.getEmail());
+                startActivity(intent);
+            }
         }
     }
 

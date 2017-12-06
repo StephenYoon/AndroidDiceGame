@@ -13,7 +13,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Your Email Address:"
+        android:text="Login Email Address:"
         android:id="@+id/textView"
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true" />
@@ -22,7 +22,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="textEmailAddress"
-        android:ems="10"
+        android:ems="9"
         android:id="@+id/etEmailAddr"
         android:layout_below="@+id/textView"
         android:layout_alignParentStart="true" />
@@ -40,7 +40,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="textPassword"
-        android:ems="10"
+        android:ems="9"
         android:id="@+id/etPassword"
         android:layout_below="@+id/textView2"
         android:layout_alignParentStart="true" />
@@ -57,7 +57,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Create Account"
+        android:text="Create Account With Above"
         android:id="@+id/btnCreate"
         android:layout_alignBottom="@+id/btnSignIn"
         android:layout_toEndOf="@+id/textView2" />
@@ -72,12 +72,29 @@
         android:layout_marginTop="10dp" />
 
     <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Or sign in with Google below:"
+        android:id="@+id/google_sign_in_text"
+        android:layout_below="@+id/btnSignOut"
+        android:layout_marginTop="50dp"
+        android:layout_alignParentStart="true" />
+
+    <com.google.android.gms.common.SignInButton
+        android:id="@+id/sign_in_button"
+        android:layout_below="@+id/google_sign_in_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp" />
+
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:id="@+id/tvSignInStatus"
-        android:layout_below="@+id/btnSignOut"
+        android:layout_below="@+id/sign_in_button"
         android:layout_alignParentStart="true"
-        android:layout_marginTop="20dp" />
+        android:layout_marginTop="85dp" />
 
 </RelativeLayout>

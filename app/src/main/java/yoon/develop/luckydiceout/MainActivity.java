@@ -292,7 +292,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         }
                         else if (document != null && document.exists()) {
                             _userData = document.toObject(UserData.class); //task.getResult().getData();
-                            if (_userData.HighScore > _highScore){
+
+                            // Update score
+                            if (_userData.HighScore > _highScore || _userData.ForceUpdate){
                                 _highScore = _userData.HighScore;
                                 updateLocalData(_userEmail, _highScore, _totalRollCount);
                                 updateTexts();
@@ -301,12 +303,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                                 upsertUserData(_userEmail, _highScore, _totalRollCount);
                             }
 
-                            if (_userData.TotalRolls > _totalRollCount){
+                            // Update roll count
+                            if (_userData.TotalRolls > _totalRollCount || _userData.ForceUpdate){
                                 _totalRollCount = _userData.TotalRolls;
                                 updateLocalData(_userEmail, _highScore, _totalRollCount);
                                 updateTexts();
                             }
                             else if (_totalRollCount > _userData.TotalRolls){
+                                upsertUserData(_userEmail, _highScore, _totalRollCount);
+                            }
+
+                            if(_userData.ForceUpdate){
+                                _userData.ForceUpdate = false;
                                 upsertUserData(_userEmail, _highScore, _totalRollCount);
                             }
                             //Log.d("MainActivity", "DocumentSnapshot data: " + _userData);

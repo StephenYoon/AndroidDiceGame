@@ -7,9 +7,9 @@ android {
         applicationId "yoon.develop.luckydiceout"
         minSdkVersion 17
         targetSdkVersion 24
-        versionName '3.12'
+        versionName '3.21'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        versionCode 16
+        versionCode 21
     }
     buildTypes {
         release {

@@ -49,7 +49,6 @@ public class SignInActivity extends AppCompatActivity
         findViewById(R.id.btnCreate).setOnClickListener(this);
         findViewById(R.id.btnSignIn).setOnClickListener(this);
         findViewById(R.id.btnSignOut).setOnClickListener(this);
-        findViewById(R.id.btnJustPlay).setOnClickListener(this);
 
         etEmail = (EditText)findViewById(R.id.etEmailAddr);
         etPass = (EditText)findViewById(R.id.etPassword);
@@ -67,7 +66,6 @@ public class SignInActivity extends AppCompatActivity
                     Log.d(TAG, "Signed in: " + user.getUid());
                     findViewById(R.id.btnCreate).setVisibility(View.INVISIBLE);
                     findViewById(R.id.btnSignIn).setVisibility(View.INVISIBLE);
-                    findViewById(R.id.btnJustPlay).setVisibility(View.INVISIBLE);
                     findViewById(R.id.btnSignOut).setVisibility(View.VISIBLE);
                     switchActivity();
                 } else {
@@ -75,7 +73,6 @@ public class SignInActivity extends AppCompatActivity
                     Log.d(TAG, "Currently signed out");
                     findViewById(R.id.btnCreate).setVisibility(View.VISIBLE);
                     findViewById(R.id.btnSignIn).setVisibility(View.VISIBLE);
-                    findViewById(R.id.btnJustPlay).setVisibility(View.VISIBLE);
                     findViewById(R.id.btnSignOut).setVisibility(View.INVISIBLE);
                 }
             }
@@ -123,10 +120,6 @@ public class SignInActivity extends AppCompatActivity
         switch (v.getId()) {
             case R.id.btnSignIn:
                 signUserIn();
-                break;
-
-            case R.id.btnJustPlay:
-                signUserIn(true);
                 break;
 
             case R.id.btnCreate:

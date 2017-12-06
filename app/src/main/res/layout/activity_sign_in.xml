@@ -71,15 +71,6 @@
         android:layout_alignParentStart="true"
         android:layout_marginTop="10dp" />
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Just Play!"
-        android:id="@+id/btnJustPlay"
-        android:layout_below="@+id/btnSignOut"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="15dp" />
-
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -87,6 +78,6 @@
         android:id="@+id/tvSignInStatus"
         android:layout_below="@+id/btnSignOut"
         android:layout_alignParentStart="true"
-        android:layout_marginTop="70dp" />
+        android:layout_marginTop="20dp" />
 
 </RelativeLayout>

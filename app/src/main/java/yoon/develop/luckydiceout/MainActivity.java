@@ -54,14 +54,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     // Field to hold values
     private String _userEmail;
-    private long _score;
     private long _highScore;
     private long _totalRollCount;
     private long _doublesCount;
     private long _triplesCount;
 
     private TextView _userText;
-    private TextView _highScoreText;
     private TextView _doublesCountText;
     private TextView _triplesCountText;
     private TextView _totalRollsText;
@@ -123,7 +121,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
 
         // Set initial values
-        _score = 0;
         _highScore = 0;
         _totalRollCount = 0;
         _doublesCount = 0;
@@ -139,7 +136,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         // Link instances to widgets in the activity view
         _userText = (TextView) findViewById(R.id.userText);
-        _highScoreText = (TextView) findViewById(R.id.highScoreText);
         _rollResult = (TextView) findViewById(R.id.rollResult);
 
         _doublesCountText = (TextView) findViewById(R.id.doublesCountText);
@@ -191,11 +187,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         _highScore = sharedPref.getLong("high_score", 0);
 
         _userText.setText("User: " + _userEmail);
-        _highScoreText.setText("High Score: " + _highScore);
         _doublesCountText.setText("Doubles: " + _doublesCount);
         _triplesCountText.setText("Triples: " + _triplesCount);
         _totalRollsText.setText("Total Rolls: " + _totalRollCount);
-        _scoreText.setText("Score: " + _score);
+        _scoreText.setText("Score: " + _highScore);
 
         // Sensors
         sensorMan = (SensorManager)getSystemService(SENSOR_SERVICE);
@@ -256,21 +251,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             // Triples
             int scoreDelta = _dice.get(0)*100;
             msg = "You rolled a triple " + _dice.get(0) + " for " + scoreDelta + " points!";
-            _score += scoreDelta;
+            _highScore += scoreDelta;
             _triplesCount++;
         } else if (_dice.get(0) == _dice.get(1) || _dice.get(0) == _dice.get(2) || _dice.get(1) == _dice.get(2)) {
             // Doubles
             msg = "You rolled doubles for 50 points!";
-            _score += 50;
+            _highScore += 50;
             _doublesCount++;
         } else {
             msg = "You didn't score this roll. Try again!";
         }
 
         // Save scores
-        if(_score > _highScore) {
-            _highScore = _score;
-        }
         updateLocalData(_userEmail, _highScore, _totalRollCount);
 
         // Update the app to display the result message
@@ -332,10 +324,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private void updateTexts(){
         _totalRollsText.setText("Total Rolls: " + _totalRollCount);
-        _highScoreText.setText("High Score: " + _highScore);
         _triplesCountText.setText("Triples: " + _triplesCount);
         _doublesCountText.setText("Doubles: " + _doublesCount);
-        _scoreText.setText("Score: " + _score);
+        _scoreText.setText("Score: " + _highScore);
     }
 
     private void updateLocalData(String email, long highScore, long totalRollCount){

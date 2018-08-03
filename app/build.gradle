@@ -2,14 +2,14 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 26
-    buildToolsVersion "26.0.2"
+    buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId "yoon.develop.luckydiceout"
         minSdkVersion 17
-        targetSdkVersion 24
-        versionName '3.21'
+        targetSdkVersion 26
+        versionName '3.22'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        versionCode 21
+        versionCode 22
     }
     buildTypes {
         release {
